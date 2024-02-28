@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 public class client {
     private static final String SERVER_ADDRESS = "localhost"; // Server address
-    private static final int SERVER_PORT = 5927; // Server port, matching the server code port
+    private static final int SERVER_PORT = 5927; // Server port, matching the server's
 
     public static void main(String[] args) {
         try (Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
@@ -12,30 +12,34 @@ public class client {
              BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              Scanner scanner = new Scanner(System.in)) {
 
-            System.out.println("Connected to the joke server. Enter a joke number (1-3) or type 'bye' to exit.");
+            // Initial connection message
+            System.out.println("Client> Connected to the joke server. Enter a joke number (1-3) or type 'bye' to exit.");
             
             while (true) {
-                System.out.print("Enter command: ");
+                System.out.print("Client> ");
                 String userInput = scanner.nextLine(); // Read user input
 
-                output.println(userInput); // Send user input to server
+                // Send user input to the server
+                output.println(userInput); 
 
                 if ("bye".equalsIgnoreCase(userInput)) {
-                    String response = input.readLine(); // Ensure to read the final server response
+                    // Handle server's response for "bye" command
+                    String response = input.readLine(); 
                     if ("disconnected".equalsIgnoreCase(response)) {
-                        System.out.println("exit");
+                        System.out.println("Client> exit");
                     }
-                    break;
+                    break; // Exit the loop to end client process
                 }
 
+                // Receive and print the response from the server
                 String response = input.readLine();
-                System.out.println("Server response: " + response);
+                System.out.println("Client> Received from server: \"" + response + "\"");
             }
 
         } catch (UnknownHostException ex) {
-            System.out.println("Server not found: " + ex.getMessage());
+            System.out.println("Client> Server not found: " + ex.getMessage());
         } catch (IOException ex) {
-            System.out.println("I/O error: " + ex.getMessage());
+            System.out.println("Client> I/O error: " + ex.getMessage());
         }
     }
 }

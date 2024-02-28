@@ -1,30 +1,19 @@
 import java.io.*;
 import java.net.*;
-import java.util.HashMap;
 
 public class server {
-    // Define a port number for the server 
-    private static final int PORT = 5927; 
-    // A HashMap to store jokes with their corresponding numbers
-    private static HashMap<Integer, String> jokes = new HashMap<>();
+    // Define the port number for the server
+    private static final int PORT = 5927;
 
     public static void main(String[] args) {
-        // Populate the HashMap with jokes
-        jokes.put(1, "Why do programmers prefer dark mode? Because light attracts bugs.");
-        jokes.put(2, "How many programmers does it take to change a light bulb? None, that's a hardware problem.");
-        jokes.put(3, "Why do Java developers wear glasses? Because they can't C#.");
-
-        // Try to create a server socket listening on the specified port
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Server is listening on port " + PORT);
 
-            // Continuously listen for client connections
+            // Continuously listen for client connections.
             while (true) {
-                Socket socket = serverSocket.accept(); // Accept an incoming connection
-                System.out.println("New client connected");
-
-                // Create and start a new thread for each connected client
-                new ServerThread(socket).start();
+                Socket socket = serverSocket.accept();
+                System.out.println("Server> Got connection request from " + socket.getInetAddress().getHostAddress());
+                new ServerThread(socket).start();  // Handle each client connection in a separate thread.
             }
         } catch (IOException ex) {
             System.out.println("Server exception: " + ex.getMessage());
@@ -32,40 +21,54 @@ public class server {
         }
     }
 
-    // Define a ServerThread class to handle client communication
     private static class ServerThread extends Thread {
-        private Socket socket; // Socket to communicate with the client
+        private Socket socket;
 
+        // Constructor to assign the client's socket to a local variable.
         public ServerThread(Socket socket) {
             this.socket = socket;
         }
 
+        // The main logic of the server thread handling client communication.
         public void run() {
-            // Set up input and output streams for socket communication
             try (BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                  PrintWriter output = new PrintWriter(socket.getOutputStream(), true)) {
 
                 String text;
-                // Read input from client and process commands
                 while ((text = input.readLine()) != null) {
-                    if (text.equalsIgnoreCase("bye")) { // Check if the command is "bye"
-                        output.println("disconnected"); // Send goodbye message
-                        break; // Exit the loop and end the connection
+                    // Output formatting when the client sends a "bye" request.
+                    if (text.equalsIgnoreCase("bye")) {
+                        output.println("disconnected");
+                        System.out.println("Server> Client disconnected.");
+                        break;
                     }
 
-                    // Process joke requests
+                    // Try to parse the joke number and send back the corresponding joke.
                     try {
-                        int jokeNumber = Integer.parseInt(text); // Parse the joke number
-                        String joke = jokes.getOrDefault(jokeNumber, "Joke not found."); // Retrieve the joke
-                        output.println(joke); // Send the joke to the client
-                    } catch (NumberFormatException e) {
-                        // Handle invalid input (non-integer)
-                        output.println("Invalid input. Please send a joke number or 'bye' to exit.");
+                        int jokeNumber = Integer.parseInt(text);
+                        String jokeFile = "joke" + jokeNumber + ".txt";
+                        File file = new File(jokeFile);
+                        if (file.exists()) {
+                            BufferedReader fileReader = new BufferedReader(new FileReader(file));
+                            StringBuilder jokeContent = new StringBuilder();
+                            String line;
+                            while ((line = fileReader.readLine()) != null) {
+                                jokeContent.append(line).append("\n");
+                            }
+                            fileReader.close();
+                            output.println(jokeContent.toString().trim());  // Send the joke content to the client.
+                            System.out.println("Server> Client requested: \"Joke " + jokeNumber + "\", returning: \"" + jokeFile + "\" file");
+                        } else {
+                            output.println("Joke not found.");
+                            System.out.println("Server> Invalid joke request received.");
+                        }
+                    } catch (NumberFormatException | IOException e) {
+                        output.println("Invalid input.");
+                        System.out.println("Server> Invalid input received.");
                     }
                 }
 
-                socket.close(); // Close the client socket connection
-                System.out.println("disconnected");
+                socket.close(); // Close the connection to the client.
             } catch (IOException ex) {
                 System.out.println("Server exception: " + ex.getMessage());
                 ex.printStackTrace();
