@@ -4,8 +4,9 @@ import java.util.Scanner;
 
 public class client {
     private static final String SERVER_ADDRESS = "localhost"; // Server address
-    private static final int SERVER_PORT = 5927; // Server port, matching the server's
+    private static final int SERVER_PORT = 5927; // Server port, matching the server's port
 
+    // Initiates server connection, creates I/O streams, and manages user input.
     public static void main(String[] args) {
         try (Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
              PrintWriter output = new PrintWriter(socket.getOutputStream(), true);

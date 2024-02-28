@@ -13,7 +13,7 @@ public class server {
             while (true) {
                 Socket socket = serverSocket.accept();
                 System.out.println("Server> Got connection request from " + socket.getInetAddress().getHostAddress());
-                new ServerThread(socket).start();  // Handle each client connection in a separate thread.
+                new ServerThread(socket).start();  // Handle each client connection in a separate thread (even tho we dont need to).
             }
         } catch (IOException ex) {
             System.out.println("Server exception: " + ex.getMessage());
@@ -29,7 +29,7 @@ public class server {
             this.socket = socket;
         }
 
-        // The main logic of the server thread handling client communication.
+        // This is the main logic of the server thread handling client communication.
         public void run() {
             try (BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                  PrintWriter output = new PrintWriter(socket.getOutputStream(), true)) {
